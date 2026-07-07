@@ -1,13 +1,14 @@
-use crate::resources::time::UpdateTime;
+use crate::resources::time::Time;
 use crate::resources::{config::Config, stats::Stats};
 use crate::utils::schedules::Schedules;
 use bevy_ecs::world::World;
+use std::thread;
 use std::time::{Duration, Instant};
 
 pub struct State {
     last_frame: Instant,
 
-    fixed_accumulator: Duration,
+    fixed_update_accumulator: Duration,
     logging_accumulator: Duration,
 
     tps_accumulator: u16,
@@ -27,7 +28,7 @@ impl Runner {
             schedules,
             state: State {
                 last_frame: Instant::now(),
-                fixed_accumulator: Duration::ZERO,
+                fixed_update_accumulator: Duration::ZERO,
                 logging_accumulator: Duration::ZERO,
 
                 tps_accumulator: 0,
@@ -37,6 +38,8 @@ impl Runner {
     }
 
     pub fn run(&mut self) {
+        self.run_startup_schedule();
+
         loop {
             self.measure_frame();
 
@@ -47,25 +50,32 @@ impl Runner {
             self.update_stats();
 
             // Don't burn 100% CPU.
-            // thread::yield_now();
+            thread::yield_now();
         }
+    }
+
+    fn run_startup_schedule(&mut self) {
+        self.schedules.startup.run(&mut self.world);
     }
 
     fn measure_frame(&mut self) {
         let frame_dt = self.state.last_frame.elapsed();
         self.state.last_frame = Instant::now();
 
-        self.state.fixed_accumulator += frame_dt;
+        self.state.fixed_update_accumulator += frame_dt;
         self.state.logging_accumulator += frame_dt;
 
         let mut stats = self.world.resource_mut::<Stats>();
         stats.frame_time = frame_dt;
 
-        let mut update_time = self.world.resource_mut::<UpdateTime>();
-        update_time.delta = frame_dt;
+        let mut time = self.world.resource_mut::<Time>();
+        time.set_update_delta(frame_dt);
     }
 
     fn run_update_schedule(&mut self) {
+        let mut time = self.world.resource_mut::<Time>();
+        time.running_fixed_update(false);
+
         self.schedules.update.run(&mut self.world);
     }
 
@@ -80,12 +90,17 @@ impl Runner {
 
         let mut ticks_this_frame = 0;
 
-        while self.state.fixed_accumulator >= fixed_update_interval
+        while self.state.fixed_update_accumulator >= fixed_update_interval
             && ticks_this_frame < max_fixed_updates_per_frame
         {
-            ticks_this_frame += 1;
+            let mut time = self.world.resource_mut::<Time>();
+            time.running_fixed_update(true);
+            time.set_fixed_update_delta(fixed_update_interval);
+
             self.schedules.fixed_update.run(&mut self.world);
-            self.state.fixed_accumulator -= fixed_update_interval;
+
+            ticks_this_frame += 1;
+            self.state.fixed_update_accumulator -= fixed_update_interval;
         }
 
         self.state.tps_accumulator += ticks_this_frame;
@@ -103,31 +118,34 @@ impl Runner {
     }
 
     fn update_stats(&mut self) {
-        if self.state.tps_timer.elapsed() >= Duration::from_secs(1) {
+        let elapsed = self.state.tps_timer.elapsed();
+
+        if elapsed >= Duration::from_secs(1) {
             self.state.tps_timer = Instant::now();
 
             let mut stats = self.world.resource_mut::<Stats>();
 
-            stats.current_tps = self.state.tps_accumulator;
+            let current_tps =
+                ((self.state.tps_accumulator as f32) / elapsed.as_secs_f32()).round() as u16;
+            stats.current_tps = current_tps;
             self.state.tps_accumulator = 0;
 
             // Running average TPS (EMA)
             if stats.average_tps == 0.0 {
-                stats.average_tps = stats.current_tps as f32;
+                stats.average_tps = current_tps as f32;
             } else {
                 const ALPHA: f32 = 0.05;
-                stats.average_tps =
-                    stats.average_tps as f32 * (1.0 - ALPHA) + stats.current_tps as f32 * ALPHA;
+                stats.average_tps = stats.average_tps * (1.0 - ALPHA) + current_tps as f32 * ALPHA;
             }
 
             // Min / Max TPS
             if stats.min_tps == 0 {
-                stats.min_tps = stats.current_tps;
+                stats.min_tps = current_tps;
             } else {
-                stats.min_tps = stats.min_tps.min(stats.current_tps);
+                stats.min_tps = stats.min_tps.min(current_tps);
             }
 
-            stats.max_tps = stats.max_tps.max(stats.current_tps);
+            stats.max_tps = stats.max_tps.max(current_tps);
         }
     }
 }

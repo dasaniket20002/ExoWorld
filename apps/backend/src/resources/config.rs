@@ -9,6 +9,8 @@ pub struct Config {
     pub logging_interval: Duration,
 
     pub max_fixed_updates_per_frame: u16,
+
+    pub max_entities: u32,
 }
 
 impl Default for Config {
@@ -18,7 +20,10 @@ impl Default for Config {
             expected_tps: tps,
             fixed_update_interval: Duration::from_secs_f64(1.0 / tps as f64),
             logging_interval: Duration::from_secs(2),
+
             max_fixed_updates_per_frame: 5,
+
+            max_entities: 10000000,
         }
     }
 }

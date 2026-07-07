@@ -1,5 +1,5 @@
 use crate::{
-    resources::{config::Config, stats::Stats, time::UpdateTime},
+    resources::{config::Config, stats::Stats, time::Time},
     utils::{runner::Runner, schedules::Schedules},
 };
 use bevy_ecs::world::World;
@@ -12,7 +12,7 @@ mod utils;
 fn main() {
     let mut world = World::new();
 
-    world.insert_resource(UpdateTime::default());
+    world.insert_resource(Time::default());
     world.insert_resource(Stats::default());
     world.insert_resource(Config::default());
 
