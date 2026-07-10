@@ -1,42 +1,42 @@
-use bevy_ecs::schedule::Schedule;
+use crate::systems::{
+    accumulate_frame_stats::accumulate_frame_stats, log_stats_system::log_stats_system,
+    spawn_entities::spawn_entities, update_position::update_position,
+};
+use bevy_ecs::{
+    schedule::{Schedule, ScheduleLabel, Schedules},
+    world::World,
+};
 
-use crate::systems::{log_stats::log_stats, movement::movement, spawn_entities::spawn_entities};
+#[derive(ScheduleLabel, Clone, Debug, PartialEq, Eq, Hash)]
+pub struct Startup;
 
-pub struct Schedules {
-    pub startup: Schedule,
-    pub update: Schedule,
-    pub fixed_update: Schedule,
-    pub logging: Schedule,
-}
+#[derive(ScheduleLabel, Clone, Debug, PartialEq, Eq, Hash)]
+pub struct Update;
 
-impl Default for Schedules {
-    fn default() -> Self {
-        Self {
-            startup: Schedule::default(),
-            update: Schedule::default(),
-            fixed_update: Schedule::default(),
-            logging: Schedule::default(),
-        }
-    }
-}
+#[derive(ScheduleLabel, Clone, Debug, PartialEq, Eq, Hash)]
+pub struct FixedUpdate;
 
-impl Schedules {
-    pub fn build_schedules() -> Self {
-        let mut startup = Schedule::default();
-        let mut update = Schedule::default();
-        let mut fixed_update = Schedule::default();
-        let mut logging = Schedule::default();
+#[derive(ScheduleLabel, Clone, Debug, PartialEq, Eq, Hash)]
+pub struct Logging;
 
-        startup.add_systems(spawn_entities);
-        update.add_systems(movement);
-        // fixed_update.add_systems(movement);
-        logging.add_systems(log_stats);
+pub fn register_schedules(world: &mut World) {
+    world.init_resource::<Schedules>();
 
-        Self {
-            startup,
-            update,
-            fixed_update,
-            logging,
-        }
-    }
+    let mut startup_schedule = Schedule::new(Startup);
+    startup_schedule.add_systems((spawn_entities,));
+
+    let mut update_schedule = Schedule::new(Update);
+    update_schedule.add_systems((accumulate_frame_stats,));
+
+    let mut fixed_schedule = Schedule::new(FixedUpdate);
+    fixed_schedule.add_systems((update_position,));
+
+    let mut log_schedule = Schedule::new(Logging);
+    log_schedule.add_systems((log_stats_system,));
+
+    let mut schedules = world.resource_mut::<Schedules>();
+    schedules.insert(startup_schedule);
+    schedules.insert(update_schedule);
+    schedules.insert(fixed_schedule);
+    schedules.insert(log_schedule);
 }

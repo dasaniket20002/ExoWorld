@@ -1,22 +1,32 @@
-use crate::{
-    resources::{config::Config, stats::Stats, time::Time},
-    utils::{runner::Runner, schedules::Schedules},
-};
-use bevy_ecs::world::World;
-
 mod components;
 mod resources;
 mod systems;
 mod utils;
 
+use crate::{
+    resources::{
+        config::Config,
+        engine_stats::EngineStats,
+        time::{FixedUpdateAccumulator, LoggingAccumulator, Time},
+    },
+    utils::{runner::Runner, schedules::register_schedules},
+};
+use bevy_ecs::world::World;
+
 fn main() {
     let mut world = World::new();
 
-    world.insert_resource(Time::default());
-    world.insert_resource(Stats::default());
-    world.insert_resource(Config::default());
+    println!("[INFO] World initialized");
 
-    let schedules = Schedules::build_schedules();
+    world.init_resource::<Config>();
+    world.init_resource::<Time>();
+    world.init_resource::<FixedUpdateAccumulator>();
+    world.init_resource::<LoggingAccumulator>();
+    world.init_resource::<EngineStats>();
 
-    Runner::new(world, schedules).run();
+    register_schedules(&mut world);
+
+    println!("[INFO] World resources and schedules inserted");
+
+    Runner::new(world).run();
 }

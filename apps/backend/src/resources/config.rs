@@ -1,29 +1,28 @@
-use std::time::Duration;
-
 use bevy_ecs::resource::Resource;
+
+pub const EXPECTED_TPS: u16 = 20;
 
 #[derive(Resource)]
 pub struct Config {
-    pub expected_tps: u16,
-    pub fixed_update_interval: Duration,
-    pub logging_interval: Duration,
+    pub sim_speed: i16,
+
+    pub fixed_update_interval: f32,
+    pub logging_interval: f32,
 
     pub max_fixed_updates_per_frame: u16,
-
     pub max_entities: u32,
 }
 
 impl Default for Config {
     fn default() -> Self {
-        let tps = 20;
         Self {
-            expected_tps: tps,
-            fixed_update_interval: Duration::from_secs_f64(1.0 / tps as f64),
-            logging_interval: Duration::from_secs(2),
+            sim_speed: 1,
+
+            fixed_update_interval: 1.0 / (EXPECTED_TPS as f32),
+            logging_interval: 2.0,
 
             max_fixed_updates_per_frame: 5,
-
-            max_entities: 10000000,
+            max_entities: 25000000,
         }
     }
 }

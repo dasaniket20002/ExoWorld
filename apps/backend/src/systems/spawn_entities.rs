@@ -26,6 +26,6 @@ pub fn spawn_entities(mut cmd: Commands, config: Res<Config>) {
     }
 
     cmd.spawn_batch(entities);
-    
-    println!("Spawnned {} entities", config.max_entities);
+
+    println!("[INFO] Spawnned {} entities", config.max_entities);
 }

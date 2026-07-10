@@ -1,42 +1,48 @@
+use crate::resources::config::EXPECTED_TPS;
 use bevy_ecs::resource::Resource;
-use std::time::Duration;
+use std::time::Instant;
 
 #[derive(Resource)]
 pub struct Time {
-    _running_fixed_update: bool,
+    pub frame_start: Instant,
+    delta: f32,
+    fixed_delta: f32,
 
-    delta: Duration,
-    fixed_delta: Duration,
+    pub _running_fixed_update: bool,
 }
 
 impl Default for Time {
     fn default() -> Self {
         Self {
+            frame_start: Instant::now(),
+            delta: 0.0,
+            fixed_delta: 1.0 / (EXPECTED_TPS as f32),
+
             _running_fixed_update: false,
-            delta: Duration::ZERO,
-            fixed_delta: Duration::ZERO,
         }
     }
 }
 
 impl Time {
-    pub fn running_fixed_update(&mut self, r: bool) {
-        self._running_fixed_update = r;
+    pub fn set_update_delta(&mut self, delta: f32) {
+        self.delta = delta;
     }
 
-    pub fn set_update_delta(&mut self, dt: Duration) {
-        self.delta = dt;
-    }
-
-    pub fn set_fixed_update_delta(&mut self, dt: Duration) {
-        self.fixed_delta = dt;
-    }
-
-    pub fn delta(&self) -> Duration {
+    pub fn delta(&self) -> f32 {
         if self._running_fixed_update {
             self.fixed_delta
         } else {
             self.delta
         }
     }
+}
+
+#[derive(Resource, Default)]
+pub struct FixedUpdateAccumulator {
+    pub remainder: f32,
+}
+
+#[derive(Resource, Default)]
+pub struct LoggingAccumulator {
+    pub remainder: f32,
 }

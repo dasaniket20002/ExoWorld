@@ -1,7 +1,6 @@
 use crate::components::velocity::Velocity;
 use bevy_ecs::component::Component;
 use bevy_math::{Vec3A, vec3a};
-use std::time::Duration;
 
 #[derive(Component)]
 pub struct Position(pub Vec3A);
@@ -21,7 +20,7 @@ impl Position {
         self.0
     }
 
-    pub fn add_velocity(&mut self, v: &Velocity, dt: &Duration) {
-        self.0 += v.get() * dt.as_secs_f32();
+    pub fn add_velocity(&mut self, v: &Velocity, dt: &f32) {
+        self.0 += v.get() * dt;
     }
 }
