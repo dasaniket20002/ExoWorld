@@ -3,7 +3,6 @@ use crate::{
     resources::config::Config,
 };
 use bevy_ecs::system::{Commands, Res};
-use rand::random_range;
 
 pub fn spawn_entities(mut cmd: Commands, config: Res<Config>) {
     let mut entities = vec![];
@@ -16,12 +15,16 @@ pub fn spawn_entities(mut cmd: Commands, config: Res<Config>) {
     for _ in 0..config.max_entities {
         entities.push((
             Position::new(
-                random_range(range.0..range.1),
-                random_range(range.0..range.1),
+                (fastrand::f32() * (range.1 - range.0 + 1.0)) + range.0,
                 0.0,
+                (fastrand::f32() * (range.1 - range.0 + 1.0)) + range.0,
             ),
             Velocity::default(),
-            Acceleration::new(random_range(-1.0..1.0), random_range(-1.0..1.0), 0.0),
+            Acceleration::new(
+                (fastrand::f32() * (1.0 - -1.0 + 1.0)) + -1.0,
+                0.0,
+                (fastrand::f32() * (1.0 - -1.0 + 1.0)) + -1.0,
+            ),
         ));
     }
 

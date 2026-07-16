@@ -1,4 +1,3 @@
-use crate::resources::config::EXPECTED_TPS;
 use bevy_ecs::resource::Resource;
 use std::time::Instant;
 
@@ -16,7 +15,7 @@ impl Default for Time {
         Self {
             frame_start: Instant::now(),
             delta: 0.0,
-            fixed_delta: 1.0 / (EXPECTED_TPS as f32),
+            fixed_delta: 0.0,
 
             _running_fixed_update: false,
         }
@@ -26,6 +25,10 @@ impl Default for Time {
 impl Time {
     pub fn set_update_delta(&mut self, delta: f32) {
         self.delta = delta;
+    }
+
+    pub fn set_fixed_update_delta(&mut self, delta: f32) {
+        self.fixed_delta = delta;
     }
 
     pub fn delta(&self) -> f32 {

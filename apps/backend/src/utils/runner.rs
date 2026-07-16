@@ -25,12 +25,11 @@ impl Runner {
         self.world.run_schedule(Startup);
 
         loop {
-            let (fixed_update_interval, logging_interval, sim_speed, max_fixed_updates_per_frame) = {
+            let (fixed_update_interval, logging_interval, max_fixed_updates_per_frame) = {
                 let cfg = self.world.resource::<Config>();
                 (
-                    cfg.fixed_update_interval,
+                    cfg.fixed_update_interval(),
                     cfg.logging_interval,
-                    cfg.sim_speed,
                     cfg.max_fixed_updates_per_frame,
                 )
             };
@@ -55,6 +54,7 @@ impl Runner {
             {
                 let mut time = self.world.resource_mut::<Time>();
                 time._running_fixed_update = true;
+                time.set_fixed_update_delta(fixed_update_interval);
             }
 
             let mut ticks_this_frame = 0;
@@ -65,9 +65,7 @@ impl Runner {
                     .resource_mut::<FixedUpdateAccumulator>()
                     .remainder -= fixed_update_interval;
 
-                for _ in 0..sim_speed {
-                    self.world.run_schedule(FixedUpdate);
-                }
+                self.world.run_schedule(FixedUpdate);
 
                 ticks_this_frame += 1;
                 self.world
