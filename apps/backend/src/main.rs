@@ -7,6 +7,7 @@ use crate::{
     resources::{
         config::Config,
         engine_stats::EngineStats,
+        quadtree::Quadtree,
         time::{FixedUpdateAccumulator, LoggingAccumulator, Time},
     },
     utils::{runner::Runner, schedules::register_schedules},
@@ -23,6 +24,9 @@ fn main() {
     world.init_resource::<FixedUpdateAccumulator>();
     world.init_resource::<LoggingAccumulator>();
     world.init_resource::<EngineStats>();
+
+    let bounds = world.resource::<Config>().world_size;
+    world.insert_resource(Quadtree::new(bounds));
 
     register_schedules(&mut world);
 

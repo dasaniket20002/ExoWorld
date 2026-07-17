@@ -7,6 +7,7 @@ edition = "2024"
 bevy_ecs   = { version = "0.19.0", features = ["multi_threaded"] }
 bevy_math = "0.19.0"
 fastrand = "2.4.1"
+uuid = { version = "1.11", features = ["v4"] }
 shared = { path = "../../crates/shared" }
 
 # Enable a small amount of optimization in the dev profile.

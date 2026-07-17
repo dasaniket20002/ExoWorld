@@ -20,10 +20,9 @@ impl Runner {
     }
 
     pub fn run(&mut self) {
-        let mut last_frame = Instant::now();
-
         self.world.run_schedule(Startup);
 
+        let mut last_frame = Instant::now();
         loop {
             let (fixed_update_interval, logging_interval, max_fixed_updates_per_frame) = {
                 let cfg = self.world.resource::<Config>();
