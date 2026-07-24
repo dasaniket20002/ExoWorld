@@ -1,0 +1,7 @@
+services:
+  spacetimedb:
+    image: clockworklabs/spacetime:latest
+    pull_policy: missing
+    command: start
+    ports:
+      - "3000:3000"

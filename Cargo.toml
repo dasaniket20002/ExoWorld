@@ -1,8 +1,11 @@
 [workspace]
 members = [
     "apps/backend",
-    "apps/frontend",
+    "apps/frontend", 
     "crates/shared",
     "crates/stdb",
 ]
 resolver="3"
+
+[workspace.dependencies]
+serde = { version = "1.0.228", features = ["derive"] }

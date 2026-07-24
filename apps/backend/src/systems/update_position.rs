@@ -2,12 +2,9 @@ use crate::{
     components::{
         acceleration::Acceleration, entity_id::EntityID, position::Position, velocity::Velocity,
     },
-    resources::{config::Config, quadtree::Quadtree, time::Time},
+    resources::{config::Config, time::Time},
 };
-use bevy_ecs::{
-    query::Changed,
-    system::{Query, Res, ResMut},
-};
+use bevy_ecs::system::{Query, Res};
 
 pub fn update_position(
     mut query: Query<(&EntityID, &mut Position, &mut Velocity, &Acceleration)>,
@@ -37,14 +34,5 @@ pub fn update_position(
             pos.get().y = config.world_range.1.1;
             vel.get().y = -vel.get().y;
         }
-    });
-}
-
-pub fn update_quadtree(
-    query: Query<(&EntityID, &Position), Changed<Position>>,
-    mut quadtree: ResMut<Quadtree>,
-) {
-    query.iter().for_each(|(id, pos)| {
-        quadtree.insert_or_update(&id.get(), &pos.get());
     });
 }

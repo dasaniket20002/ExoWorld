@@ -1,6 +1,6 @@
 use crate::components::acceleration::Acceleration;
 use bevy_ecs::component::Component;
-use bevy_math::{Vec2, vec2};
+use bevy_math::Vec2;
 
 #[derive(Component)]
 pub struct Velocity(Vec2);
@@ -12,9 +12,9 @@ impl Default for Velocity {
 }
 
 impl Velocity {
-    pub fn new(x: f32, y: f32) -> Self {
-        Self(vec2(x, y))
-    }
+    // pub fn new(x: f32, y: f32) -> Self {
+    //     Self(vec2(x, y))
+    // }
 
     pub fn get(&self) -> Vec2 {
         self.0

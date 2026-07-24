@@ -1,9 +1,7 @@
 use crate::systems::{
-    accumulate_frame_stats::accumulate_frame_stats,
-    calculate_stats::calculate_stats,
-    log_stats_system::log_stats_system,
-    spawn_entities::spawn_entities,
-    update_position::{update_position, update_quadtree},
+    accumulate_frame_stats::accumulate_frame_stats, calculate_stats::calculate_stats,
+    log_stats_system::log_stats_system, spawn_entities::spawn_entities,
+    update_position::update_position,
 };
 use bevy_ecs::{
     schedule::{IntoScheduleConfigs, Schedule, ScheduleLabel, Schedules},
@@ -32,7 +30,7 @@ pub fn register_schedules(world: &mut World) {
     update_schedule.add_systems((accumulate_frame_stats,));
 
     let mut fixed_schedule = Schedule::new(FixedUpdate);
-    fixed_schedule.add_systems((update_position, update_quadtree).chain());
+    fixed_schedule.add_systems((update_position,));
 
     let mut log_schedule = Schedule::new(Logging);
     log_schedule.add_systems((calculate_stats, (log_stats_system,)).chain());
