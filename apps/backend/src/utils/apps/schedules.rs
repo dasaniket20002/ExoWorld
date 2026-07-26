@@ -1,7 +1,7 @@
 use crate::systems::{
-    accumulate_frame_stats::accumulate_frame_stats, calculate_stats::calculate_stats,
-    log_stats_system::log_stats_system, spawn_entities::spawn_entities,
-    update_position::update_position,
+    entities::{spawn::spawn_entities::spawn_entities, update::update_position::update_position},
+    stats::{calculate_stats::calculate_stats, log_stats_system::log_stats_system},
+    time::accumulate_frame_stats::accumulate_frame_stats,
 };
 use bevy_ecs::{
     schedule::{IntoScheduleConfigs, Schedule, ScheduleLabel, Schedules},

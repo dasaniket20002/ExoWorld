@@ -2,7 +2,7 @@ use crate::{
     components::{
         acceleration::Acceleration, entity_id::EntityID, position::Position, velocity::Velocity,
     },
-    resources::{config::Config, time::Time},
+    resources::{config::Config, time::time::Time},
 };
 use bevy_ecs::system::{Query, Res};
 
@@ -15,23 +15,23 @@ pub fn update_position(
         vel.add_acceleration(&acc, &time.delta());
         pos.add_velocity(&vel, &time.delta());
 
-        if pos.get().x < config.world_range.0.0 {
-            pos.get().x = config.world_range.0.0;
+        if pos.get().x < config.world_bounds.0.0 {
+            pos.get().x = config.world_bounds.0.0;
             vel.get().x = -vel.get().x;
         }
 
-        if pos.get().x > config.world_range.0.1 {
-            pos.get().x = config.world_range.0.1;
+        if pos.get().x > config.world_bounds.0.1 {
+            pos.get().x = config.world_bounds.0.1;
             vel.get().x = -vel.get().x;
         }
 
-        if pos.get().y < config.world_range.1.0 {
-            pos.get().y = config.world_range.1.0;
+        if pos.get().y < config.world_bounds.1.0 {
+            pos.get().y = config.world_bounds.1.0;
             vel.get().y = -vel.get().y;
         }
 
-        if pos.get().y > config.world_range.1.1 {
-            pos.get().y = config.world_range.1.1;
+        if pos.get().y > config.world_bounds.1.1 {
+            pos.get().y = config.world_bounds.1.1;
             vel.get().y = -vel.get().y;
         }
     });

@@ -5,9 +5,12 @@ use crate::{
     resources::{
         config::Config,
         engine_stats::EngineStats,
-        time::{FixedUpdateAccumulator, LoggingAccumulator, Time},
+        time::{
+            fixed_accumulator::FixedUpdateAccumulator, logging_accumulator::LoggingAccumulator,
+            time::Time,
+        },
     },
-    utils::schedules::{FixedUpdate, Logging, Startup, Update},
+    utils::apps::schedules::{FixedUpdate, Logging, Startup, Update},
 };
 
 pub struct Runner {

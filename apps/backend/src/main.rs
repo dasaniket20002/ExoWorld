@@ -7,13 +7,18 @@ use crate::{
     resources::{
         config::Config,
         engine_stats::EngineStats,
-        time::{FixedUpdateAccumulator, LoggingAccumulator, Time},
+        time::{
+            fixed_accumulator::FixedUpdateAccumulator, logging_accumulator::LoggingAccumulator,
+            time::Time,
+        },
     },
-    utils::{runner::Runner, schedules::register_schedules},
+    utils::apps::{runner::Runner, schedules::register_schedules},
 };
 use bevy_ecs::world::World;
+use bevy_tasks::{ComputeTaskPool, TaskPool};
 
 fn main() {
+    ComputeTaskPool::get_or_init(TaskPool::default);
     let mut world = World::new();
 
     println!("[INFO] World initialized");

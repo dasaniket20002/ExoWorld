@@ -39,13 +39,3 @@ impl Time {
         }
     }
 }
-
-#[derive(Resource, Default)]
-pub struct FixedUpdateAccumulator {
-    pub remainder: f32,
-}
-
-#[derive(Resource, Default)]
-pub struct LoggingAccumulator {
-    pub remainder: f32,
-}
