@@ -20,15 +20,16 @@ pub fn update_position(
             vel.get().x = -vel.get().x;
         }
 
-        if pos.get().x > config.world_bounds.0.1 {
-            pos.get().x = config.world_bounds.0.1;
+        if pos.get().y < config.world_bounds.0.1 {
+            pos.get().y = config.world_bounds.0.1;
+            vel.get().y = -vel.get().y;
+        }
+
+        if pos.get().x > config.world_bounds.1.0 {
+            pos.get().x = config.world_bounds.1.0;
             vel.get().x = -vel.get().x;
         }
 
-        if pos.get().y < config.world_bounds.1.0 {
-            pos.get().y = config.world_bounds.1.0;
-            vel.get().y = -vel.get().y;
-        }
 
         if pos.get().y > config.world_bounds.1.1 {
             pos.get().y = config.world_bounds.1.1;

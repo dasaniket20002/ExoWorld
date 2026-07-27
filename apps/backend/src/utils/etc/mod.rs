@@ -1,3 +1,5 @@
+pub mod par_write_ptr;
+
 pub fn random_f32(min: f32, max: f32) -> f32 {
     min + fastrand::f32() * (max - min)
 }
