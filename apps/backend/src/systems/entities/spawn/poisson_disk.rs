@@ -1,5 +1,6 @@
 use crate::utils::etc::random_f32;
 use bevy_tasks::ComputeTaskPool;
+use indicatif::ProgressBar;
 use std::collections::{HashMap, VecDeque};
 
 #[derive(Clone, Copy)]
@@ -90,6 +91,7 @@ fn sample_tile(
     max_radius: f32,
     packing_efficiency: usize,
     global_grid: &HashMap<Cell, Vec<Placed>>,
+    pb: &ProgressBar,
 ) -> Vec<(usize, (f32, f32))> {
     if queue.is_empty() {
         return Vec::new();
@@ -100,6 +102,8 @@ fn sample_tile(
     let mut active_list: Vec<usize> = Vec::new();
     let mut remaining: VecDeque<usize> = queue.iter().copied().collect();
     let mut output: Vec<(usize, (f32, f32))> = Vec::with_capacity(queue.len());
+
+    let mut local_progress = 0;
 
     let first_gidx = remaining.pop_front().unwrap();
     let r0 = radii[first_gidx];
@@ -131,6 +135,7 @@ fn sample_tile(
                 .push(li);
             active_list.push(li);
             output.push((first_gidx, pos0));
+            local_progress += 1;
             seeded = true;
             break;
         }
@@ -182,8 +187,15 @@ fn sample_tile(
                     .push(li);
                 active_list.push(li);
                 output.push((candidate_gidx, candidate_pos));
+                local_progress += 1;
                 remaining.pop_front();
                 placed_ok = true;
+
+                if local_progress >= 128 {
+                    pb.inc(local_progress);
+                    local_progress = 0;
+                }
+
                 break;
             }
         }
@@ -191,6 +203,10 @@ fn sample_tile(
         if !placed_ok {
             active_list.swap_remove(active_slot);
         }
+    }
+
+    if local_progress != 0 {
+        pb.inc(local_progress);
     }
 
     output
@@ -203,6 +219,7 @@ pub fn poisson_disk_sampling(
     radii: &[f32],
     bounds: &Bounds,
     packing_efficiency: usize,
+    pb: &ProgressBar,
 ) -> Vec<PoissonDiskSample> {
     if radii.is_empty() {
         return Vec::new();
@@ -288,6 +305,7 @@ pub fn poisson_disk_sampling(
                                 max_radius,
                                 packing_efficiency,
                                 global_grid_ref,
+                                pb,
                             ));
                         }
                         chunk_out
