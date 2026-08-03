@@ -1,5 +1,8 @@
 use crate::systems::{
-    entities::{spawn::spawn_entities::spawn_entities, update::update_position::update_position},
+    entities::{
+        spawn::{insert_to_grid::insert_to_grid, spawn_entities::spawn_entities},
+        update::update_position::update_position,
+    },
     stats::{calculate_stats::calculate_stats, log_stats_system::log_stats_system},
     time::accumulate_frame_stats::accumulate_frame_stats,
 };
@@ -24,7 +27,7 @@ pub fn register_schedules(world: &mut World) {
     world.init_resource::<Schedules>();
 
     let mut startup_schedule = Schedule::new(Startup);
-    startup_schedule.add_systems((spawn_entities,));
+    startup_schedule.add_systems((spawn_entities, insert_to_grid).chain());
 
     let mut update_schedule = Schedule::new(Update);
     update_schedule.add_systems((accumulate_frame_stats,));

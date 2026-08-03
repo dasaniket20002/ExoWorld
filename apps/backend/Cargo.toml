@@ -9,7 +9,7 @@ bevy_math = { workspace = true }
 bevy_tasks = { workspace = true }
 fastrand = "2.4.1"
 indicatif = "0.18.6"
-uuid = { version = "1.11", features = ["v4"] }
+parking_lot = "0.12.5"
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]

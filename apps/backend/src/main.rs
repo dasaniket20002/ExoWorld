@@ -7,6 +7,7 @@ use crate::{
     resources::{
         config::Config,
         engine_stats::EngineStats,
+        spatial_grid::grid::SpatialGrid,
         time::{
             fixed_accumulator::FixedUpdateAccumulator, logging_accumulator::LoggingAccumulator,
             time::Time,
@@ -28,6 +29,15 @@ fn main() {
     world.init_resource::<FixedUpdateAccumulator>();
     world.init_resource::<LoggingAccumulator>();
     world.init_resource::<EngineStats>();
+
+    {
+        let cfg = world.resource::<Config>();
+        world.insert_resource::<SpatialGrid>(SpatialGrid::new(
+            cfg.world_size,
+            cfg.chunk_size,
+            cfg.cell_size,
+        ));
+    }
 
     register_schedules(&mut world);
 

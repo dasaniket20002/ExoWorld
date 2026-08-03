@@ -11,19 +11,14 @@ pub struct Config {
     pub max_fixed_updates_per_frame: u16,
     pub max_entities: u32,
 
-    // pub world_size: (u32, u32),
-    pub world_bounds: ((f32, f32), (f32, f32)),
+    pub world_size: usize,
+    pub chunk_size: usize,
+    pub cell_size: usize,
 }
 
 impl Default for Config {
     fn default() -> Self {
         let _default_tps = 20;
-        let _world_size = (1_000_000, 1_000_000);
-
-        let min_x = -(_world_size.0 as f32) / 2.0;
-        let max_x = (_world_size.0 as f32) / 2.0;
-        let min_y = -(_world_size.1 as f32) / 2.0;
-        let max_y = (_world_size.1 as f32) / 2.0;
 
         Self {
             sim_speed: 1.0,
@@ -35,8 +30,9 @@ impl Default for Config {
             max_fixed_updates_per_frame: 5,
             max_entities: 10_000_000,
 
-            // world_size: _world_size,
-            world_bounds: ((min_x, min_y), (max_x, max_y)),
+            world_size: 100_000,
+            chunk_size: 1000,
+            cell_size: 10,
         }
     }
 }

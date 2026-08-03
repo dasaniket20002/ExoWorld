@@ -19,10 +19,10 @@ struct Placed {
 }
 
 #[inline]
-fn cell_coords(pos: (f32, f32), origin: (f32, f32), cell_size: f32) -> Cell {
+fn cell_coords(pos: (f32, f32), cell_size: f32) -> Cell {
     (
-        ((pos.0 - origin.0) / cell_size).floor() as i32,
-        ((pos.1 - origin.1) / cell_size).floor() as i32,
+        (pos.0 / cell_size).floor() as i32,
+        (pos.1 / cell_size).floor() as i32,
     )
 }
 
@@ -30,7 +30,6 @@ fn is_valid(
     pos: (f32, f32),
     r: f32,
     tile_bounds: &Bounds,
-    origin: (f32, f32),
     cell_size: f32,
     max_radius: f32,
     local_grid: &HashMap<Cell, Vec<usize>>,
@@ -45,7 +44,7 @@ fn is_valid(
         return false;
     }
 
-    let (cx, cy) = cell_coords(pos, origin, cell_size);
+    let (cx, cy) = cell_coords(pos, cell_size);
     let search_radius = ((r + max_radius) / cell_size).ceil() as i32;
 
     for dx in -search_radius..=search_radius {
@@ -86,7 +85,6 @@ fn sample_tile(
     queue: &[usize],
     radii: &[f32],
     tile_bounds: &Bounds,
-    origin: (f32, f32),
     cell_size: f32,
     max_radius: f32,
     packing_efficiency: usize,
@@ -117,7 +115,6 @@ fn sample_tile(
             pos0,
             r0,
             tile_bounds,
-            origin,
             cell_size,
             max_radius,
             &local_grid,
@@ -130,7 +127,7 @@ fn sample_tile(
                 radius: r0,
             });
             local_grid
-                .entry(cell_coords(pos0, origin, cell_size))
+                .entry(cell_coords(pos0, cell_size))
                 .or_insert_with(Vec::new)
                 .push(li);
             active_list.push(li);
@@ -169,7 +166,6 @@ fn sample_tile(
                 candidate_pos,
                 new_r,
                 tile_bounds,
-                origin,
                 cell_size,
                 max_radius,
                 &local_grid,
@@ -182,7 +178,7 @@ fn sample_tile(
                     radius: new_r,
                 });
                 local_grid
-                    .entry(cell_coords(candidate_pos, origin, cell_size))
+                    .entry(cell_coords(candidate_pos, cell_size))
                     .or_insert_with(Vec::new)
                     .push(li);
                 active_list.push(li);
@@ -217,7 +213,7 @@ fn sample_tile(
 /// Parallelism runs on Bevy's own `ComputeTaskPool` — no extra crates.
 pub fn poisson_disk_sampling(
     radii: &[f32],
-    bounds: &Bounds,
+    world_size: usize,
     packing_efficiency: usize,
     pb: &ProgressBar,
 ) -> Vec<PoissonDiskSample> {
@@ -225,25 +221,23 @@ pub fn poisson_disk_sampling(
         return Vec::new();
     }
 
+    let world_size = world_size as f32;
+
     let pool = ComputeTaskPool::get();
 
     let max_radius = radii.iter().copied().fold(0.0_f32, f32::max);
     let min_radius = radii.iter().copied().fold(f32::MAX, f32::min);
     let cell_size = (min_radius.max(0.001)) * std::f32::consts::FRAC_1_SQRT_2;
 
-    let world_w = bounds.1.0 - bounds.0.0;
-    let world_h = bounds.1.1 - bounds.0.1;
-
     let n_threads = bevy_tasks::available_parallelism().max(1);
     let target_tiles = (n_threads * 8).max(4) as f32;
     let approx_tiles_per_axis = target_tiles.sqrt().ceil().max(1.0);
     let tile_size = (2.0 * max_radius)
         .max(cell_size * 4.0)
-        .max(world_w.max(world_h) / approx_tiles_per_axis);
+        .max(world_size / approx_tiles_per_axis);
 
-    let tiles_x = (world_w / tile_size).ceil().max(1.0) as i32;
-    let tiles_y = (world_h / tile_size).ceil().max(1.0) as i32;
-    let num_tiles = (tiles_x * tiles_y) as usize;
+    let tiles_size = (world_size / tile_size).ceil().max(1.0) as i32;
+    let num_tiles = (tiles_size * tiles_size) as usize;
 
     let mut order: Vec<usize> = (0..radii.len()).collect();
     order.sort_by(|&a, &b| radii[b].partial_cmp(&radii[a]).unwrap());
@@ -254,13 +248,13 @@ pub fn poisson_disk_sampling(
     }
 
     let tile_bounds = |tx: i32, ty: i32| -> Bounds {
-        let min_x = bounds.0.0 + tx as f32 * tile_size;
-        let min_y = bounds.0.1 + ty as f32 * tile_size;
+        let min_x = tx as f32 * tile_size;
+        let min_y = ty as f32 * tile_size;
         (
             (min_x, min_y),
             (
-                (min_x + tile_size).min(bounds.1.0),
-                (min_y + tile_size).min(bounds.1.1),
+                (min_x + tile_size).min(world_size),
+                (min_y + tile_size).min(world_size),
             ),
         )
     };
@@ -269,10 +263,10 @@ pub fn poisson_disk_sampling(
     let mut samples: Vec<Option<PoissonDiskSample>> = vec![None; radii.len()];
 
     for &(color_x, color_y) in &[(0, 0), (1, 0), (0, 1), (1, 1)] {
-        let tiles_in_color = (0..tiles_y)
-            .flat_map(|ty| (0..tiles_x).map(move |tx| (tx, ty)))
+        let tiles_in_color = (0..tiles_size)
+            .flat_map(|ty| (0..tiles_size).map(move |tx| (tx, ty)))
             .filter(|&(tx, ty)| tx % 2 == color_x && ty % 2 == color_y)
-            .map(|(tx, ty)| (tx, ty, (ty * tiles_x + tx) as usize))
+            .map(|(tx, ty)| (tx, ty, (ty * tiles_size + tx) as usize))
             .collect::<Vec<_>>();
 
         if tiles_in_color.is_empty() {
@@ -300,7 +294,6 @@ pub fn poisson_disk_sampling(
                                 &tile_queues_ref[qidx],
                                 radii_ref,
                                 &tb,
-                                bounds.0,
                                 cell_size,
                                 max_radius,
                                 packing_efficiency,
@@ -318,7 +311,7 @@ pub fn poisson_disk_sampling(
         // Sequential merge — the only place global_grid is mutated.
         for tile_result in batch_results {
             for (idx, pos) in tile_result {
-                let key = cell_coords(pos, bounds.0, cell_size);
+                let key = cell_coords(pos, cell_size);
                 global_grid
                     .entry(key)
                     .or_insert_with(Vec::new)

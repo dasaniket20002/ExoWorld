@@ -1,40 +1,37 @@
 use crate::{
-    components::{
-        acceleration::Acceleration, entity_id::EntityID, position::Position, velocity::Velocity,
-    },
+    components::{acceleration::Acceleration, position::Position, velocity::Velocity},
     resources::{config::Config, time::time::Time},
 };
 use bevy_ecs::system::{Query, Res};
 
 pub fn update_position(
-    mut query: Query<(&EntityID, &mut Position, &mut Velocity, &Acceleration)>,
+    mut query: Query<(&mut Position, &mut Velocity, &Acceleration)>,
     time: Res<Time>,
     config: Res<Config>,
 ) {
-    let (minx, miny) = config.world_bounds.0;
-    let (maxx, maxy) = config.world_bounds.1;
-
-    query.par_iter_mut().for_each(|(_, mut pos, mut vel, acc)| {
+    let world_size = config.world_size as f32;
+    
+    query.par_iter_mut().for_each(|(mut pos, mut vel, acc)| {
         vel.add_acceleration(&acc, &time.delta());
         pos.add_velocity(&vel, &time.delta());
 
-        if pos.0 < minx {
-            pos.0 = minx;
+        if pos.0 < 0.0 {
+            pos.0 = 0.0;
             vel.0 = -vel.0;
         }
 
-        if pos.0 > maxx {
-            pos.0 = maxx;
+        if pos.0 > world_size {
+            pos.0 = world_size;
             vel.0 = -vel.0;
         }
 
-        if pos.1 < miny {
-            pos.1 = miny;
+        if pos.1 < 0.0 {
+            pos.1 = 0.0;
             vel.1 = -vel.1;
         }
 
-        if pos.1 > maxy {
-            pos.1 = maxy;
+        if pos.1 > world_size {
+            pos.1 = world_size;
             vel.1 = -vel.1;
         }
     });

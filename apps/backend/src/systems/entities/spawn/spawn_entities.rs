@@ -1,6 +1,6 @@
 use crate::{
     components::{
-        acceleration::Acceleration, entity_id::EntityID, position::Position, radius::Radius,
+        acceleration::Acceleration, facing::Facing, position::Position, radius::Radius,
         velocity::Velocity,
     },
     resources::config::Config,
@@ -19,17 +19,17 @@ pub fn spawn_entities(mut cmd: Commands, config: Res<Config>) {
         .map(|_| random_f32(0.5, 1.25))
         .collect::<Vec<_>>();
 
-    let samples = poisson_disk_sampling(&radii, &config.world_bounds, 30, &pb);
+    let samples = poisson_disk_sampling(&radii, config.world_size, 30, &pb);
     let spawn_count = samples.len();
 
-    let bundles = samples.into_iter().map(|sample| {
-        let id = EntityID::default();
+    let bundles = samples.into_iter().map(move |sample| {
         let vel = Velocity::default();
         let acc = Acceleration::new(random_f32(-1.0, 1.0), random_f32(-1.0, 1.0));
         let rad = Radius((sample.radius * 100.0) as u8);
         let pos = Position::new(sample.position.0, sample.position.1);
+        let fac = Facing::default();
 
-        (id, rad, pos, vel, acc)
+        (rad, pos, vel, acc, fac)
     });
 
     cmd.spawn_batch(bundles);
