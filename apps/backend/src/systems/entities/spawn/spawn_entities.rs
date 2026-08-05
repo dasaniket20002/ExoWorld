@@ -15,8 +15,12 @@ pub fn spawn_entities(mut cmd: Commands, config: Res<Config>) {
     let start = Instant::now();
     let pb = ProgressBar::new(config.max_entities as u64).with_elapsed(start.elapsed());
 
+    let radii_range = (
+        config.radius_range.0 as f32 / 100.0,
+        config.radius_range.1 as f32 / 100.0,
+    );
     let radii = (0..config.max_entities)
-        .map(|_| random_f32(0.5, 1.25))
+        .map(|_| random_f32(radii_range.0, radii_range.1))
         .collect::<Vec<_>>();
 
     let samples = poisson_disk_sampling(&radii, config.world_size, 30, &pb);

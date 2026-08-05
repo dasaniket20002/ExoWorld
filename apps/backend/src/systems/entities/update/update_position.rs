@@ -10,8 +10,15 @@ pub fn update_position(
     config: Res<Config>,
 ) {
     let world_size = config.world_size as f32;
-    
+
     query.par_iter_mut().for_each(|(mut pos, mut vel, acc)| {
+        if acc.nil() {
+            return;
+        }
+
+        vel.note_previous();
+        pos.note_previous();
+
         vel.add_acceleration(&acc, &time.delta());
         pos.add_velocity(&vel, &time.delta());
 

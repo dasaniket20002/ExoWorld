@@ -1,3 +1,5 @@
+pub mod sorted_vec;
+
 pub fn random_f32(min: f32, max: f32) -> f32 {
     min + fastrand::f32() * (max - min)
 }

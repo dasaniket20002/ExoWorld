@@ -4,4 +4,5 @@ use bevy_ecs::component::Component;
 pub struct GridLocation {
     pub chunk_id: usize,
     pub cell_id: usize,
+    pub cell_slot: usize,
 }

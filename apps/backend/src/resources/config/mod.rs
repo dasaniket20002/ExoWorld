@@ -14,6 +14,7 @@ pub struct Config {
     pub world_size: usize,
     pub chunk_size: usize,
     pub cell_size: usize,
+    pub radius_range: (u8, u8),
 }
 
 impl Default for Config {
@@ -28,11 +29,12 @@ impl Default for Config {
             logging_interval: 2.0,
 
             max_fixed_updates_per_frame: 5,
-            max_entities: 10_000_000,
+            max_entities: 1_000_000,
 
-            world_size: 100_000,
+            world_size: 10_000,
             chunk_size: 1000,
             cell_size: 10,
+            radius_range: (50, 125),
         }
     }
 }

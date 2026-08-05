@@ -1,4 +1,4 @@
-use crate::{components::acceleration::Acceleration, utils::etc::fast_inv_sqrt};
+use crate::utils::etc::fast_inv_sqrt;
 use bevy_ecs::component::Component;
 
 #[derive(Component, Default)]

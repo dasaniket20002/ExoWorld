@@ -13,24 +13,26 @@ pub fn insert_to_grid(
     mut grid: ResMut<SpatialGrid>,
     query: Query<(Entity, &Position)>,
 ) {
-    // for chunk in &grid.active {
-    //     for cell in chunk {
-    //         print!("c ");
-    //     }
-    //     println!();
-    // }
     let start = Instant::now();
 
     query.iter().for_each(|(entity, position)| {
-        let location = GridLocation {
-            cell_id: grid.world_to_cell_id(position.0, position.1),
-            chunk_id: grid.world_to_chunk_id(position.0, position.1),
-        };
+        let cell_id = grid.world_to_cell_id(position.0, position.1);
+        let chunk_id = grid.world_to_chunk_id(position.0, position.1);
 
-        grid.insert_entity_at(entity, location.chunk_id, location.cell_id);
+        let cell_slot = grid.insert_entity_at(entity, chunk_id, cell_id);
+
+        let location = GridLocation {
+            chunk_id,
+            cell_id,
+            cell_slot,
+        };
 
         cmd.entity(entity).insert(location);
     });
+
+    // {
+    //     grid.dump_to_file("frames/0_grid.txt");
+    // }
 
     println!(
         "[INFO] Entities inserted into Spatial Grid in {:.2} ms",
